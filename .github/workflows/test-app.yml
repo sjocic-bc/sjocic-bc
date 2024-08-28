@@ -8,10 +8,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      # Install NPM dependencies, cache them correctly
-      # and run all Cypress tests
+
+      # Install NPM dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Build the application
+      - name: Build the application
+        run: npm run build
+
+      # Start the application server in the background
+      - name: Start server
+        run: npm start &
+
+      # Wait for the server to be ready
+      - name: Wait for server to be ready
+        uses: jakejarvis/wait-on-action@v1
+        with:
+          url: http://localhost:8080
+
+      # Run Cypress tests
       - name: Cypress run
         uses: cypress-io/github-action@v2
-        with:
-          build: npm run build
-          start: npm start
