@@ -34,5 +34,5 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
-          spec: 'cypress/e2e/**/*.cy.js'
+          spec: 'cypress/e2e/*.cy.js'
           config-file: 'cypress.config.js'
