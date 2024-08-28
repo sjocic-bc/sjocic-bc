@@ -21,11 +21,13 @@ jobs:
       - name: Start server
         run: npm start &
 
+      # Install wait-on
+      - name: Install wait-on
+        run: npm install -g wait-on
+
       # Wait for the server to be ready
-      - name: Wait for server to be ready
-        uses: jakejarvis/wait-on-action@v1
-        with:
-          url: http://localhost:8080
+      - name: Wait for server
+        run: wait-on http://localhost:8080
 
       # Run Cypress tests
       - name: Cypress run
