@@ -20,7 +20,9 @@ jobs:
 
       - name: Check the UTC time
         id: utc_time
-        run: echo "utc_date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+        run: |
+          echo "utc_date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+          echo "The UTC time of the server is $(date -u +'%Y-%m-%d %H:%M:%S')"
 
 
       - name: Wait for server to be ready
