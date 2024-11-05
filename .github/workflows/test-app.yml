@@ -19,7 +19,8 @@ jobs:
         run: npm start &
 
       - name: Check the time
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')" 
+        id: time
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_ENV 
 
 
       - name: Wait for server to be ready
