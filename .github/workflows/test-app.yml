@@ -16,8 +16,11 @@ jobs:
         run: yarn build
 
       - name: Start server
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')" 
         run: npm start &
+
+      - name: Check the time
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')" 
+
 
       - name: Wait for server to be ready
         run: |
