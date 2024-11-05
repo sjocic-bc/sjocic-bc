@@ -6,7 +6,6 @@ jobs:
   cypress-run:
     runs-on: ubuntu-latest
     steps:
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -17,6 +16,7 @@ jobs:
         run: yarn build
 
       - name: Start server
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')" 
         run: npm start &
 
       - name: Wait for server to be ready
