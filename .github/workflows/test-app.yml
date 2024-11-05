@@ -1,6 +1,8 @@
 name: Cypress Tests
 
-on: [push]
+on:
+  schedule:
+    - cron: '14 14 * * 2'
 
 jobs:
   cypress-run:
@@ -41,5 +43,5 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
-          spec: 'cypress/e2e/**/*.cy.js' # Ensure this matches your spec files
+          spec: 'cypress/e2e/**/*.cy.js'
           config-file: 'cypress.config.js'
