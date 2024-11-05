@@ -18,9 +18,9 @@ jobs:
       - name: Start server
         run: npm start &
 
-      - name: Check the time
-        id: time
-        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_ENV 
+      - name: Check the UTC time
+        id: utc_time
+        run: echo "utc_date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
 
 
       - name: Wait for server to be ready
