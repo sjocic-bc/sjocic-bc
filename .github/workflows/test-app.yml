@@ -51,7 +51,7 @@ jobs:
         if: always()
         uses: rtCamp/action-slack-notify@v2
         with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
           message: "Cypress test run completed with status: ${{ job.status }}"
 
 
