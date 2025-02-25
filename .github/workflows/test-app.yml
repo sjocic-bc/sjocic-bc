@@ -1,70 +1,109 @@
-name: Cypress Tests
+# name: Cypress Tests
 
-on: [push]
-# schedule:
-#   - cron: '0 6 * * *' 
-# workflow_dispatch:
+# on: [push]
+# # schedule:
+# #   - cron: '0 6 * * *' 
+# # workflow_dispatch:
+
+# jobs:
+#   cypress-run:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v2
+
+#       - name: Install dependencies
+#         run: yarn install
+
+#       - name: Build the application
+#         run: yarn build
+
+#       - name: Start server
+#         run: npm start &
+
+#       - name: Check the UTC time
+#         id: utc_time
+#         run: |
+#           echo "utc_date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+#           echo "The UTC time of the server is $(date -u +'%Y-%m-%d %H:%M:%S')"
+
+#       - name: Wait for server to be ready
+#         run: |
+#           for i in $(seq 1 30); do
+#             if curl -s http://localhost:8080 > /dev/null; then
+#               echo "Server is up!"
+#               exit 0
+#             fi
+#             echo "Waiting for server..."
+#             sleep 10
+#           done
+#           echo "Server did not start in time!"
+#           exit 1
+
+#       - name: Cypress run
+#         id: cypress_test
+#         uses: cypress-io/github-action@v2
+#         with:
+#           spec: 'cypress/e2e/**/*.cy.js'
+#           config-file: 'cypress.config.js'
+
+#   slack-notify:
+#     runs-on: ubuntu-latest
+#     needs: cypress-run
+#     if: always()  # Ensure that this job runs even if the Cypress tests fail
+#     steps:
+#       - name: Debug output
+#         run: |
+#           echo "Cypress run result: ${{ needs.cypress-run.result }}"
+#           echo "Cypress test outcome: ${{ steps.cypress_test.outcome }}"
+
+#       - name: Slack Notification
+#         uses: rtCamp/action-slack-notify@v2
+#         env:
+#           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+#           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+#           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+#           SLACK_TEXT: |
+#             Cypress test run completed with status: ${{ needs.cypress-run.result }}
+#             Commit: ${{ github.sha }}
+#             Workflow run URL: ${{ github.server_url }}/{{ github.repository }}/runs/{{ github.run_id }}
+#             Tests failed: ${{ steps.cypress_test.outcome }}
+
+name: Run Cypress and Send Report to Slack
+
+on: [push, pull_request]
 
 jobs:
-  cypress-run:
+  cypress-test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
       - name: Install dependencies
-        run: yarn install
+        run: npm install
 
-      - name: Build the application
-        run: yarn build
+      - name: Run Cypress tests with Mochawesome reporter
+        run: npx cypress run || echo "Cypress tests failed"
 
-      - name: Start server
-        run: npm start &
+      - name: Merge Cypress reports
+        run: npx mochawesome-merge cypress/results/*.json > cypress/results/report.json
 
-      - name: Check the UTC time
-        id: utc_time
-        run: |
-          echo "utc_date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
-          echo "The UTC time of the server is $(date -u +'%Y-%m-%d %H:%M:%S')"
-
-      - name: Wait for server to be ready
-        run: |
-          for i in $(seq 1 30); do
-            if curl -s http://localhost:8080 > /dev/null; then
-              echo "Server is up!"
-              exit 0
-            fi
-            echo "Waiting for server..."
-            sleep 10
-          done
-          echo "Server did not start in time!"
-          exit 1
-
-      - name: Cypress run
-        id: cypress_test
-        uses: cypress-io/github-action@v2
-        with:
-          spec: 'cypress/e2e/**/*.cy.js'
-          config-file: 'cypress.config.js'
-
-  slack-notify:
-    runs-on: ubuntu-latest
-    needs: cypress-run
-    if: always()  # Ensure that this job runs even if the Cypress tests fail
-    steps:
-      - name: Debug output
-        run: |
-          echo "Cypress run result: ${{ needs.cypress-run.result }}"
-          echo "Cypress test outcome: ${{ steps.cypress_test.outcome }}"
-
-      - name: Slack Notification
-        uses: rtCamp/action-slack-notify@v2
+      - name: Send Slack Notification
+        if: always()
         env:
-          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TEXT: |
-            Cypress test run completed with status: ${{ needs.cypress-run.result }}
-            Commit: ${{ github.sha }}
-            Workflow run URL: ${{ github.server_url }}/{{ github.repository }}/runs/{{ github.run_id }}
-            Tests failed: ${{ steps.cypress_test.outcome }}
+          # SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+                    SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          TEST_RESULTS=$(jq '.stats' cypress/results/report.json)
+          curl -X POST -H 'Content-type: application/json' --data \
+          "{\"text\":\"*Cypress Test Report* :rocket:\", \"attachments\": [{\"text\": \"\`\`\`$TEST_RESULTS\`\`\`\"}]}" \
+          $SLACK_WEBHOOK

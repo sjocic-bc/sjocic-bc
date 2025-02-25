@@ -3,6 +3,13 @@ const { defineConfig } = require("cypress");
 module.exports = defineConfig({
   watchForFileChanges: false,
   defaultCommandTimeout: 10000,
+  reporter: "mochawesome",
+  reporterOptions: {
+    reportDir: "cypress/results",
+    overwrite: false,
+    html: false,
+    json: true,
+  },
 
   e2e: {
     specPattern: 'cypress/e2e/**/*.cy.js',
