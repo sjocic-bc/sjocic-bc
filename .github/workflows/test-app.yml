@@ -52,7 +52,8 @@ jobs:
     steps:
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
-        with:
+        env:
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+        with:
           message: "Cypress test run completed with status: ${{ job.status }}"
