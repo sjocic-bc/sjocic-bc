@@ -100,8 +100,9 @@ jobs:
     needs: cypress-run  # Ensures the Cypress run is completed before sending notification
     steps:
       - name: Slack Notification
-        uses: rtCamp/action-slack-notify@v2
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
-          message: "Cypress test run completed with status: ${{ job.status }}"
+  uses: rtCamp/action-slack-notify@v2
+  with:
+    SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+    SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+    message: "Cypress test run completed with status: ${{ job.status }}"
 
