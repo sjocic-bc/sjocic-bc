@@ -52,6 +52,11 @@ jobs:
     needs: cypress-run
     if: always()  # Ensure that this job runs even if the Cypress tests fail
     steps:
+      - name: Debug output
+        run: |
+          echo "Cypress run result: ${{ needs.cypress-run.result }}"
+          echo "Cypress test outcome: ${{ steps.cypress_test.outcome }}"
+
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
         env:
