@@ -11,7 +11,7 @@ describe('CI CD', () => {
   it('login', () => {
     cy.viewport(1920, 1080);
     cy.visit('/');
-    cy.get('h1').should('have.text', 'todos');
+    cy.get('h1').should('have.text', 'todosS');
     // cy.wait(500);
     // Cypress.on('uncaught:exception', (err, runnable) => {
     //   return false;
