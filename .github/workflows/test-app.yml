@@ -55,5 +55,6 @@ jobs:
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         with:
           message: "Cypress test run completed with status: ${{ job.status }}"
