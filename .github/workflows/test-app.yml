@@ -1,3 +1,60 @@
+# name: Run Cypress and Send Report to Slack
+
+# on: [push, pull_request]
+
+# jobs:
+#   cypress-test:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: 18
+
+#       - name: Install dependencies
+#         run: npm install
+
+#       - name: Build the application
+#         run: npm run build
+
+#       - name: Start the server
+#         run: npm start &
+
+#       - name: Wait for server to be ready
+#         run: |
+#           for i in {1..30}; do
+#             if curl -s http://localhost:8080 > /dev/null; then
+#               echo "Server is up!"
+#               exit 0
+#             fi
+#             echo "Waiting for server..."
+#             sleep 5
+#           done
+#           echo "Server did not start in time!"
+#           exit 1
+
+#       - name: Run Cypress tests with Mochawesome reporter
+#         run: npx cypress run || echo "Cypress tests failed"
+
+#       - name: Merge Cypress reports
+#         run: npx mochawesome-merge cypress/results/*.json > cypress/results/report.json
+
+#       - name: Send Slack Notification
+#         if: always()
+#         env:
+#           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+#           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+#           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+#         run: |
+#           TEST_RESULTS=$(jq -c '.stats' cypress/results/report.json)
+#           curl -X POST -H 'Content-type: application/json' --data \
+#           "{\"text\":\"*Cypress Test Report* :rocket:\", \"attachments\": [{\"text\": \"\`\`\`${TEST_RESULTS}\`\`\`\"}]}" \
+#           $SLACK_WEBHOOK
+
 name: Run Cypress and Send Report to Slack
 
 on: [push, pull_request]
@@ -43,6 +100,12 @@ jobs:
       - name: Merge Cypress reports
         run: npx mochawesome-merge cypress/results/*.json > cypress/results/report.json
 
+      - name: Check if report is valid
+        run: |
+          if [ ! -s cypress/results/report.json ]; then
+            echo '{"stats":{}}' > cypress/results/report.json
+          fi
+
       - name: Send Slack Notification
         if: always()
         env:
@@ -51,6 +114,13 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
           TEST_RESULTS=$(jq -c '.stats' cypress/results/report.json)
-          curl -X POST -H 'Content-type: application/json' --data \
-          "{\"text\":\"*Cypress Test Report* :rocket:\", \"attachments\": [{\"text\": \"\`\`\`${TEST_RESULTS}\`\`\`\"}]}" \
-          $SLACK_WEBHOOK
+          if [ "$TEST_RESULTS" == "{}" ]; then
+            echo "No tests were run or report is empty"
+            curl -X POST -H 'Content-type: application/json' --data \
+            "{\"text\":\"*Cypress Test Report* :rocket: No tests were run or the report is empty.\"}" \
+            $SLACK_WEBHOOK
+          else
+            curl -X POST -H 'Content-type: application/json' --data \
+            "{\"text\":\"*Cypress Test Report* :rocket:\", \"attachments\": [{\"text\": \"\`\`\`${TEST_RESULTS}\`\`\`\"}]}" \
+            $SLACK_WEBHOOK
+          fi
