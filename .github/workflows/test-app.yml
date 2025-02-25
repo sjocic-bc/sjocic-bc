@@ -116,14 +116,14 @@ jobs:
       - name: Merge Cypress reports
         run: npx mochawesome-merge cypress/results/*.json > cypress/results/report.json
 
-      - name: Send Slack Notification
+       - name: Send Slack Notification
         if: always()
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
-          TEST_RESULTS=$(jq '.stats' cypress/results/report.json)
+          TEST_RESULTS=$(jq -c '.stats' cypress/results/report.json)
           curl -X POST -H 'Content-type: application/json' --data \
-          "{\"text\":\"*Cypress Test Report* :rocket:\", \"attachments\": [{\"text\": \"\`\`\`$TEST_RESULTS\`\`\`\"}]}" \
+          "{\"text\":\"*Cypress Test Report* :rocket:\", \"attachments\": [{\"text\": \"\`\`\`${TEST_RESULTS}\`\`\`\"}]}" \
           $SLACK_WEBHOOK
