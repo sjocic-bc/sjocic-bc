@@ -46,3 +46,13 @@ jobs:
         with:
           spec: 'cypress/e2e/**/*.cy.js'
           config-file: 'cypress.config.js'
+
+      - name: Send status to Slack
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          message: "Cypress test run completed with status: ${{ job.status }}"
+
+
+          
