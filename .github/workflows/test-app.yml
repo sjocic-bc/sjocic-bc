@@ -69,25 +69,49 @@
 #             Workflow run URL: ${{ github.server_url }}/{{ github.repository }}/runs/{{ github.run_id }}
 #             Tests failed: ${{ steps.cypress_test.outcome }}
 
-name: Run Cypress and Send Report to Slack
 
-on: [push, pull_request]
+
+name: Cypress Tests
+
+on: [push]
+# schedule:
+#   - cron: '0 6 * * *' 
+# workflow_dispatch:
 
 jobs:
-  cypress-test:
+  cypress-run:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install
+
+      - name: Build the application
+        run: yarn build
+
+      - name: Start server
+        run: npm start &
+
+      - name: Check the UTC time
+        id: utc_time
+        run: |
+          echo "utc_date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+          echo "The UTC time of the server is $(date -u +'%Y-%m-%d %H:%M:%S')"
+
+      - name: Wait for server to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:8080 > /dev/null; then
+              echo "Server is up!"
+              exit 0
+            fi
+            echo "Waiting for server..."
+            sleep 10
+          done
+          echo "Server did not start in time!"
+          exit 1
 
       - name: Run Cypress tests with Mochawesome reporter
         run: npx cypress run || echo "Cypress tests failed"
