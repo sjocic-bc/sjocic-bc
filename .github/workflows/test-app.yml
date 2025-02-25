@@ -98,10 +98,9 @@ jobs:
       - name: Send Slack Notification
         if: always()
         env:
-          # SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-                    SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
-           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
           TEST_RESULTS=$(jq '.stats' cypress/results/report.json)
           curl -X POST -H 'Content-type: application/json' --data \
