@@ -1,9 +1,9 @@
 name: Cypress Tests
 
 on: [push]
- # schedule:
-   # - cron: '0 6 * * *' 
-  # workflow_dispatch:
+# schedule:
+#   - cron: '0 6 * * *' 
+# workflow_dispatch:
 
 jobs:
   cypress-run:
@@ -41,6 +41,7 @@ jobs:
           exit 1
 
       - name: Cypress run
+        id: cypress_test
         uses: cypress-io/github-action@v2
         with:
           spec: 'cypress/e2e/**/*.cy.js'
@@ -49,6 +50,7 @@ jobs:
   slack-notify:
     runs-on: ubuntu-latest
     needs: cypress-run
+    if: always()  # Ensure that this job runs even if the Cypress tests fail
     steps:
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
@@ -60,3 +62,4 @@ jobs:
             Cypress test run completed with status: ${{ needs.cypress-run.result }}
             Commit: ${{ github.sha }}
             Workflow run URL: ${{ github.server_url }}/{{ github.repository }}/runs/{{ github.run_id }}
+            Tests failed: ${{ steps.cypress_test.outcome }}
