@@ -71,44 +71,41 @@
 
 
 
-name: Cypress Tests
+name: Run Cypress and Send Report to Slack
 
-on: [push]
-# schedule:
-#   - cron: '0 6 * * *' 
-# workflow_dispatch:
+on: [push, pull_request]
 
 jobs:
-  cypress-run:
+  cypress-test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
       - name: Install dependencies
-        run: yarn install
+        run: npm install
 
       - name: Build the application
-        run: yarn build
+        run: npm run build
 
-      - name: Start server
+      - name: Start the server
         run: npm start &
-
-      - name: Check the UTC time
-        id: utc_time
-        run: |
-          echo "utc_date=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
-          echo "The UTC time of the server is $(date -u +'%Y-%m-%d %H:%M:%S')"
-
+      
       - name: Wait for server to be ready
         run: |
-          for i in $(seq 1 30); do
+          for i in {1..30}; do
             if curl -s http://localhost:8080 > /dev/null; then
               echo "Server is up!"
               exit 0
             fi
             echo "Waiting for server..."
-            sleep 10
+            sleep 5
           done
           echo "Server did not start in time!"
           exit 1
