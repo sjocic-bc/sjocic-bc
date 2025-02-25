@@ -57,4 +57,4 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         with:
-          message: "Cypress test run completed with status: ${{ job.status }}"
+          message: "Cypress test run completed with status: ${{ needs.cypress-run.result }}"
