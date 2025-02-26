@@ -64,7 +64,7 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
             | jq -r '.artifacts[0].id')
 
-          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/artifacts/${ARTIFACT_ID}/download"
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${ARTIFACT_ID}"
           echo "Artifact URL: $ARTIFACT_URL"
           echo "ARTIFACT_URL=$ARTIFACT_URL" >> $GITHUB_ENV
 
