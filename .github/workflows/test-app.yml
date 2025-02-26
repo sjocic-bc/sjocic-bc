@@ -6,22 +6,14 @@ jobs:
   cypress-test:
     runs-on: ubuntu-latest
 
-    steps:
+        steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js and Cache Dependencies
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
-        # Caching dependencies
-      - name: Cache node_modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: npm install
