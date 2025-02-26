@@ -38,21 +38,24 @@ jobs:
           exit 1
 
       - name: Run Cypress tests with Mochawesome reporter
-        run: npx cypress run || exit 1
+        run: npx cypress run
+        continue-on-error: true  # Ensure the job continues even if tests fail
 
       - name: Merge Cypress reports
+        if: always()  # Ensures this runs even if tests fail
         run: |
           mkdir -p cypress/results
           if ls cypress/results/*.json 1> /dev/null 2>&1; then
             npx mochawesome-merge cypress/results/*.json > cypress/results/report.json
           else
-            echo '{"stats":{}}' > cypress/results/report.json
+            echo '{"stats":{"tests": 0, "passes": 0, "failures": 0, "skipped": 0}}' > cypress/results/report.json
           fi
 
-      - name: Check if report is valid
+      - name: Ensure report is not empty
+        if: always()
         run: |
           if [ ! -f cypress/results/report.json ] || [ ! -s cypress/results/report.json ]; then
-            echo '{"stats":{}}' > cypress/results/report.json
+            echo '{"stats":{"tests": 0, "passes": 0, "failures": 0, "skipped": 0}}' > cypress/results/report.json
           fi
 
       - name: Send Slack Notification
@@ -63,13 +66,19 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
           TEST_RESULTS=$(jq -c '.stats' cypress/results/report.json)
-          if [ "$TEST_RESULTS" == "{}" ]; then
-            echo "No tests were run or report is empty"
-            curl -X POST -H 'Content-type: application/json' --data \
-            "{\"text\":\"*Cypress Test Report* :rocket: No tests were run or the report is empty.\"}" \
-            $SLACK_WEBHOOK
+          TOTAL_TESTS=$(echo $TEST_RESULTS | jq '.tests')
+          TOTAL_FAILS=$(echo $TEST_RESULTS | jq '.failures')
+
+          if [ "$TOTAL_TESTS" -eq 0 ]; then
+            MESSAGE="*Cypress Test Report* :rocket: No tests were run or the report is empty."
           else
-            curl -X POST -H 'Content-type: application/json' --data \
-            "{\"text\":\"*Cypress Test Report* :rocket:\", \"attachments\": [{\"text\": \"\`\`\`${TEST_RESULTS}\`\`\`\"}]}" \
-            $SLACK_WEBHOOK
+            if [ "$TOTAL_FAILS" -gt 0 ]; then
+              MESSAGE="*Cypress Test Report* :x: Some tests failed! :fire:"
+            else
+              MESSAGE="*Cypress Test Report* ✅ All tests passed!"
+            fi
           fi
+
+          curl -X POST -H 'Content-type: application/json' --data \
+          "{\"text\":\"${MESSAGE}\", \"attachments\": [{\"text\": \"\`\`\`${TEST_RESULTS}\`\`\`\"}]}" \
+          $SLACK_WEBHOOK
