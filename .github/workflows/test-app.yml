@@ -1,18 +1,19 @@
-name: Run Cypress and Notify Slack
+name: Run Cypress and Send Report to Slack
 
 on: [push, pull_request]
 
 jobs:
-  test:
+  cypress-test:
     runs-on: ubuntu-latest
-     steps:
+
+    steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install dependencies
         run: npm install
@@ -37,7 +38,7 @@ jobs:
           exit 1
 
       - name: Run Cypress Tests
-        run: npm run test || echo "CYPRESS_FAILED=true" >> $GITHUB_ENV
+        run: npx cypress run --reporter mochawesome  || echo "CYPRESS_FAILED=true" >> $GITHUB_ENV
 
       - name: Upload MochaAwesome Report (if failed)
         if: env.CYPRESS_FAILED == 'true'
