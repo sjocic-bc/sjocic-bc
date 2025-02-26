@@ -18,7 +18,7 @@ describe('CI CD', () => {
   it('login2', () => {
     cy.viewport(1920, 1080);
     cy.visit('/');
-    cy.get('h1').should('have.text', 'todosS');
+    cy.get('h1').should('have.text', 'todos');
   });
 
 
@@ -28,5 +28,5 @@ describe('CI CD', () => {
     cy.get('h1').should('have.text', 'todos');
   });
 
-  
+
 });
