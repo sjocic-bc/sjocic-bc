@@ -1,1 +1,13 @@
-{"stats":{}}
+{
+    "stats": {
+        "tests": 0,
+        "passes": 0,
+        "failures": 0,
+        "skipped": 0,
+        "pending": 0,
+        "start": "",
+        "end": "",
+        "duration": 0
+    },
+    "tests": []
+}

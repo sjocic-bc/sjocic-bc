@@ -37,14 +37,16 @@ jobs:
           echo "Server did not start in time!"
           exit 1
 
+      - name: Clean up previous reports
+        run: rm -rf cypress/results && mkdir -p cypress/results
+
       - name: Run Cypress tests with Mochawesome reporter
         run: npx cypress run
-        continue-on-error: true  # Ensure the job continues even if tests fail
+        continue-on-error: true
 
       - name: Merge Cypress reports
-        if: always()  # Ensures this runs even if tests fail
+        if: always()
         run: |
-          mkdir -p cypress/results
           if ls cypress/results/*.json 1> /dev/null 2>&1; then
             npx mochawesome-merge cypress/results/*.json > cypress/results/report.json
           else
@@ -65,20 +67,36 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
+          # Read the report.json
+          REPORT_CONTENT=$(cat cypress/results/report.json)
+          
+          # Ensure the report is not empty
+          if [[ -z "$REPORT_CONTENT" ]]; then
+              echo '{"stats":{"tests": 0, "passes": 0, "failures": 0, "skipped": 0}}' > cypress/results/report.json
+          fi
+
+          # Parse stats and tests details using jq
           TEST_RESULTS=$(jq -c '.stats' cypress/results/report.json)
           TOTAL_TESTS=$(echo $TEST_RESULTS | jq '.tests')
           TOTAL_FAILS=$(echo $TEST_RESULTS | jq '.failures')
 
+          # Extract test names (example: only names of failed tests)
+          FAILED_TESTS=$(jq -r '.results[] | select(.suites[].tests[].state == "failed") | .suites[].tests[].title' cypress/results/report.json)
+
+          # Prepare Slack message
           if [ "$TOTAL_TESTS" -eq 0 ]; then
             MESSAGE="*Cypress Test Report* :rocket: No tests were run or the report is empty."
           else
             if [ "$TOTAL_FAILS" -gt 0 ]; then
               MESSAGE="*Cypress Test Report* :x: Some tests failed! :fire:"
+              MESSAGE="$MESSAGE\n\n*Failed Tests:*"
+              MESSAGE="$MESSAGE\n\`\`\`${FAILED_TESTS}\`\`\`"  # Add failed test names
             else
               MESSAGE="*Cypress Test Report* ✅ All tests passed!"
             fi
           fi
 
+          # Send the message to Slack
           curl -X POST -H 'Content-type: application/json' --data \
           "{\"text\":\"${MESSAGE}\", \"attachments\": [{\"text\": \"\`\`\`${TEST_RESULTS}\`\`\`\"}]}" \
           $SLACK_WEBHOOK

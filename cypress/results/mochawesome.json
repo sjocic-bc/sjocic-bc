@@ -1,1 +1,109 @@
-{"stats":{}}
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-02-26T10:15:17.924Z",
+    "end": "2025-02-26T10:15:28.254Z",
+    "duration": 10330,
+    "testsRegistered": 1,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "69239ef2-c792-46c4-a3b9-adcceb4269f1",
+      "title": "",
+      "fullFile": "cypress/e2e/test.cy.js",
+      "file": "cypress/e2e/test.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "67d1a22d-3c11-41ca-a548-25f29ef50747",
+          "title": "CI CD",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "login",
+              "fullTitle": "CI CD login",
+              "timedOut": null,
+              "duration": 10286,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.viewport(1920, 1080);\ncy.visit('/');\ncy.get('h1').should('have.text', 'todosS');\n// cy.wait(500);\n// Cypress.on('uncaught:exception', (err, runnable) => {\n//   return false;\n// });\n// cy.get('div.justify-center.gap-2 button:nth-child(1)').should('be.visible').click().then(() => {\n//   cy.get('div.m-4 img[alt=\"logo\"]').should('be.visible');\n// });\n// cy.get('input[name=\"email\"]').should('be.visible').type('sjocic@bettercollective.com');\n// cy.get('input[name=\"password\"]').should('be.visible').type('Better2022');\n// cy.get('button[type=\"submit\"]').should('not.be.disabled').click();",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: expected '<h1>' to have text 'todosS', but the text was 'todos'",
+                "estack": "AssertionError: Timed out retrying after 10000ms: expected '<h1>' to have text 'todosS', but the text was 'todos'\n    at Context.eval (webpack://rollup-todomvc/./cypress/e2e/test.cy.js:14:17)",
+                "diff": "- 'todos'\n+ 'todosS'\n"
+              },
+              "uuid": "f2c2c342-90ef-42f3-a005-1acde5f089ea",
+              "parentUUID": "67d1a22d-3c11-41ca-a548-25f29ef50747",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "f2c2c342-90ef-42f3-a005-1acde5f089ea"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 10286,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/results",
+        "overwrite": true,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}
