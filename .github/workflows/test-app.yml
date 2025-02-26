@@ -47,21 +47,20 @@ jobs:
           name: mochawesome-report
           path: cypress/results/
 
-       name: Send Slack Notification with HTML Report (if failed)
-  if: env.CYPRESS_FAILED == 'true'
-  run: |
-    # Zip the report and assets together
-    zip -r mochawesome-report.zip cypress/results/mochawesome.html cypress/results/assets/
+      - name: Send Slack Notification with HTML Report (if failed)
+        if: env.CYPRESS_FAILED == 'true'
+        run: |
+          # Zip the report and assets together
+          zip -r mochawesome-report.zip cypress/results/mochawesome.html cypress/results/assets/
 
-    # Upload the zip file to Slack
-    curl -F file=@mochawesome-report.zip \
-         -F "initial_comment=🚨 Test run failed! Here's the full report with assets." \
-         -F "channels=#test-gh-notif" \
-         -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
-         https://slack.com/api/files.upload
-  env:
-    SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-
+          # Upload the zip file to Slack
+          curl -F file=@mochawesome-report.zip \
+               -F "initial_comment=🚨 Test run failed! Here's the full report with assets." \
+               -F "channels=#test-gh-notif" \
+               -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+               https://slack.com/api/files.upload
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
       - name: Send Success Message (if passed)
         if: env.CYPRESS_FAILED != 'true'
