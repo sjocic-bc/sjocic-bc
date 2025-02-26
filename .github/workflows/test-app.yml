@@ -21,7 +21,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
+<<<<<<< HEAD
           node-version: 20
+=======
+          node-version: 22
+>>>>>>> e3e9458c0f2b7c5cd2daa086295cffc5f9817738
 
       # Install dependencies
       - name: Install dependencies
