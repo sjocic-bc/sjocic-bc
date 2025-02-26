@@ -63,5 +63,7 @@ jobs:
         if: env.CYPRESS_FAILED != 'true'
         uses: rtCamp/action-slack-notify@v2
         env:
+          SLACK_TITLE: "Predictor E2E test"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "✅ All Cypress tests passed successfully!"
+          MSG_MINIMAL: "true"
