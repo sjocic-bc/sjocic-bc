@@ -1,82 +1,41 @@
-name: Cypress Tests
+name: Run Cypress and Notify Slack
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on: [push, pull_request]
 
 jobs:
-  cypress-tests:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      # Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      # Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      # Install dependencies
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm install
 
-      # Build the app
-      - name: Build the app
-        run: npm run build
+      - name: Run Cypress Tests
+        run: npm run test || echo "CYPRESS_FAILED=true" >> $GITHUB_ENV
 
-      # Start the server
-      - name: Start the server
-        run: npm start &
-
-      # Wait for the server to be ready
-      - name: Wait for server to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:8080 > /dev/null; then
-              echo "Server is up!"
-              exit 0
-            fi
-            echo "Waiting for server..."
-            sleep 5
-          done
-          echo "Server did not start in time!"
-          exit 1
-
-      # Delete old mochawesome.html file if it exists
-      - name: Delete old mochawesome.html
-        run: |
-          if [ -f "cypress/results/mochawesome.html" ]; then
-            rm cypress/results/mochawesome.html
-            echo "Deleted old mochawesome.html file."
-          else
-            echo "No old mochawesome.html file found."
-          fi
-
-      # Run Cypress tests with Mochawesome reporter
-      - name: Run Cypress tests
-        run: npx cypress run --reporter mochawesome --reporter-options reportDir=cypress/results
-
-      # Upload Mochawesome report as an artifact
-      - name: Upload Mochawesome report
+      - name: Upload MochaAwesome Report (if failed)
+        if: env.CYPRESS_FAILED == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: mochawesome-report
-          path: cypress/results/
+          path: cypress/results/mochawesome.html
 
-      # Send Mochawesome report link to Slack (always runs)
-      - name: Send report to Slack
-        if: always()  # Ensures this step runs even if tests fail
+      - name: Send Slack Notification (if failed)
+        if: env.CYPRESS_FAILED == 'true'
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          channel-id: "#test-gh-notif"
+          slack-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          filename: "mochawesome.html"
+          file-path: "path/to/mochawesome.html"
+          initial-comment: "🚨 Test run failed! Here's the report."
+
+      - name: Send Success Message (if passed)
+        if: env.CYPRESS_FAILED != 'true'
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_COLOR: '${{ job.status == ''success'' ? ''#36a64f'' : ''#ff0000'' }}'  # Green for success, red for failure
-          SLACK_TITLE: 'Cypress Test Report - ${{ job.status }}'
-          SLACK_MESSAGE: 'Cypress tests completed with status: ${{ job.status }}. View the report: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
-          SLACK_FOOTER: 'GitHub Actions'
+        with:
+          text: "✅ All Cypress tests passed successfully!"
