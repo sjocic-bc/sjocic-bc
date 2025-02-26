@@ -1,101 +1,57 @@
-name: Run Cypress and Send Report to Slack
+name: CI Pipeline
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  cypress-test:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout Code
+      uses: actions/checkout@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+    # Install Dependencies
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
 
-      - name: Install dependencies
-        run: npm install
+    - name: Install Dependencies
+      run: |
+        npm install
 
-      - name: Build the application
-        run: npm run build
+    # Build the app
+    - name: Build the App
+      run: |
+        npm run build
 
-      - name: Start the server
-        run: npm start &
+    # Run the server (if needed, replace with your command to start the server)
+    - name: Run Server
+      run: |
+        npm run start & # Run in background (assuming it's a long-running process)
+        sleep 10 # Allow server to start
 
-      - name: Wait for server to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:8080 > /dev/null; then
-              echo "Server is up!"
-              exit 0
-            fi
-            echo "Waiting for server..."
-            sleep 5
-          done
-          echo "Server did not start in time!"
-          exit 1
+    # Execute Cypress Tests with Mochawesome Report
+    - name: Run Cypress Tests
+      run: |
+        npm run cypress:run --reporter mochawesome --reporter-options reportDir=cypress/reports,reportFilename=index
+      continue-on-error: true # Ensure this step doesn't fail the job
 
-      - name: Clean up previous reports
-        run: rm -rf cypress/results && mkdir -p cypress/results
+    # Merge Mochawesome Reports
+    - name: Merge Mochawesome Reports
+      run: |
+        npx mochawesome-merge cypress/results/mochawesome.json > cypress/results/report.json
+        npx mochawesome-report-generator cypress/results/report.json -o cypress/results/html
 
-      - name: Run Cypress tests with Mochawesome reporter
-        run: npx cypress run
-        continue-on-error: true
-
-      - name: Merge Cypress reports
-        if: always()
-        run: |
-          if ls cypress/results/*.json 1> /dev/null 2>&1; then
-            npx mochawesome-merge cypress/results/mochawesome.json > cypress/results/report.json
-          else
-            echo '{"stats":{"tests": 0, "passes": 0, "failures": 0, "skipped": 0}}' > cypress/results/report.json
-          fi
-
-      - name: Send Slack Notification
-        if: always()
-        env:
-          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        run: |
-          # Read the report.json
-          REPORT_CONTENT=$(cat cypress/results/report.json)
-
-          # Parse stats and tests details using jq
-          TEST_RESULTS=$(jq -c '.stats' cypress/results/report.json)
-          TOTAL_TESTS=$(echo $TEST_RESULTS | jq '.tests')
-          TOTAL_FAILS=$(echo $TEST_RESULTS | jq '.failures')
-
-          # Extract test names (example: only names of failed tests)
-          FAILED_TESTS=$(jq -r '.results[] | select(.suites[].tests[].state == "failed") | .suites[].tests[].title' cypress/results/report.json)
-
-          # Prepare Slack message
-          if [ "$TOTAL_TESTS" -eq 0 ]; then
-            MESSAGE="*Cypress Test Report* :rocket: No tests were run or the report is empty."
-          else
-            if [ "$TOTAL_FAILS" -gt 0 ]; then
-              MESSAGE="*Cypress Test Report* :x: Some tests failed! :fire:"
-              MESSAGE="$MESSAGE\n\n*Failed Tests:*"
-              MESSAGE="$MESSAGE\n\`\`\`${FAILED_TESTS}\`\`\`"  # Add failed test names
-            else
-              MESSAGE="*Cypress Test Report*  All tests passed!"
-            fi
-          fi
-
-          # Prepare the full Slack payload
-          PAYLOAD=$(cat <<EOF
-{
-  "text": "$MESSAGE",
-  "attachments": [
-    {
-      "text": "\`\`\`$TEST_RESULTS\`\`\`"
-    }
-  ]
-}
-EOF
-)
-
-          # Send the message to Slack
-          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK
+    # Send the report to Slack using Webhook
+    - name: Send Report to Slack
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      run: |
+        curl -X POST -H 'Content-type: application/json' --data @cypress/results/html/index.html $SLACK_WEBHOOK
