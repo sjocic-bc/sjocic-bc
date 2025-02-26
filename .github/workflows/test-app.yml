@@ -72,8 +72,6 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "❌ Cypress tests failed! You can download the MochaAwesome report from the following link: ${{ env.ARTIFACT_URL }}"
           MSG_MINIMAL: "true"
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
       - name: Send Success Message to Slack (if passed)
         if: env.CYPRESS_FAILED != 'true'
@@ -83,6 +81,5 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "✅ All Cypress tests passed successfully!"
           MSG_MINIMAL: "true"
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
 
