@@ -5,12 +5,36 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Install Dependencies
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
         run: npm install
+
+      - name: Build the application
+        run: npm run build
+
+      - name: Start the server
+        run: npm start &
+      
+      - name: Wait for server to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:8080 > /dev/null; then
+              echo "Server is up!"
+              exit 0
+            fi
+            echo "Waiting for server..."
+            sleep 5
+          done
+          echo "Server did not start in time!"
+          exit 1
 
       - name: Run Cypress Tests
         run: npm run test || echo "CYPRESS_FAILED=true" >> $GITHUB_ENV
@@ -22,15 +46,16 @@ jobs:
           name: mochawesome-report
           path: cypress/results/mochawesome.html
 
-      - name: Send Slack Notification (if failed)
-        if: env.CYPRESS_FAILED == 'true'
-        uses: slackapi/slack-github-action@v1.23.0
-        with:
-          channel-id: "#test-gh-notif"
-          slack-token: ${{ secrets.SLACK_BOT_TOKEN }}
-          filename: "mochawesome.html"
-          file-path: "path/to/mochawesome.html"
-          initial-comment: "🚨 Test run failed! Here's the report."
+      - name: Send Slack Notification with HTML Report (if failed)
+  if: env.CYPRESS_FAILED == 'true'
+  run: |
+    curl -F file=@cypress/results/mochawesome.html \
+         -F "initial_comment=🚨 Test run failed! Here's the report." \
+         -F channels=#your-channel \
+         -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+         https://slack.com/api/files.upload
+  env:
+    SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
       - name: Send Success Message (if passed)
         if: env.CYPRESS_FAILED != 'true'
