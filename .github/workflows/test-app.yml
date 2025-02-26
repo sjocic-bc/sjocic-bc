@@ -52,7 +52,7 @@ jobs:
         run: |
           curl -F file=@cypress/results/mochawesome.html \
                -F "initial_comment=🚨 Test run failed! Here's the report." \
-               -F channels=#your-channel \
+               -F channels=#test-gh-notif \
                -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
                https://slack.com/api/files.upload
         env:
