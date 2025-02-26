@@ -47,18 +47,24 @@ jobs:
           name: mochawesome-report
           path: cypress/results/
 
-      - name: Send Slack Notification with HTML Report (if failed)
+      - name: Retrieve Artifact URL
+        if: env.CYPRESS_FAILED == 'true'
+        id: get_artifact_url
+        run: |
+          ARTIFACT_ID=$(gh run view $GITHUB_RUN_ID --json artifacts -q ".artifacts[0].id")
+          ARTIFACT_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_ID}"
+          echo "ARTIFACT_URL=$ARTIFACT_URL" >> $GITHUB_ENV
+
+      - name: Send Slack Notification with Artifact Link (if failed)
         if: env.CYPRESS_FAILED == 'true'
         run: |
-          # Zip the report and assets together
-          zip -r mochawesome-report.zip cypress/results/mochawesome.html cypress/results/assets/
-
-          # Upload the zip file to Slack
-          curl -F file=@mochawesome-report.zip \
-          -F "initial_comment=🚨 Test run failed! Here's the full report with assets." \
-          -F "channel_id=#test-gh-notif" \
+          curl -X POST "https://slack.com/api/chat.postMessage" \
           -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
-          https://slack.com/api/files.uploadV2
+          -H "Content-Type: application/json" \
+          -d '{
+                "channel": "#test-gh-notif",
+                "text": "🚨 Test run failed! Here is the Report: <${{ env.ARTIFACT_URL }}|Download Report>"
+              }'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
