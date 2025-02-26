@@ -73,9 +73,11 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_TITLE: "Predictor E2E test"
+          SLACK_MESSAGE: "\n"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_MESSAGE: "❌ Cypress tests failed!\nYou can download the report from the following link:\n${{ env.ARTIFACT_URL }}"
+          SLACK_MESSAGE: "❌ Cypress tests failed!\n \nYou can download the report from the following link:\n${{ env.ARTIFACT_URL }}"
           MSG_MINIMAL: "true"
+          SLACK_COLOR: "danger" 
 
       - name: Send Success Message to Slack
         if: env.CYPRESS_FAILED != 'true'
@@ -85,3 +87,4 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "✅ All Cypress tests passed successfully!"
           MSG_MINIMAL: "true"
+          SLACK_COLOR: "good"
