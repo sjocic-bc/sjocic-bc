@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Cypress Tests
 
 on:
   push:
@@ -9,49 +9,71 @@ on:
       - main
 
 jobs:
-  ci:
+  cypress-tests:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # Install Dependencies
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '20'
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
 
-    - name: Install Dependencies
-      run: |
-        npm install
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
 
-    # Build the app
-    - name: Build the App
-      run: |
-        npm run build
+      # Build the app
+      - name: Build the app
+        run: npm run build
 
-    # Run the server (if needed, replace with your command to start the server)
-    - name: Run Server
-      run: |
-        npm run start & # Run in background (assuming it's a long-running process)
-        sleep 10 # Allow server to start
+      - name: Start the server
+        run: npm start &
+      
+      - name: Wait for server to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:8080 > /dev/null; then
+              echo "Server is up!"
+              exit 0
+            fi
+            echo "Waiting for server..."
+            sleep 5
+          done
+          echo "Server did not start in time!"
+          exit 1
 
-    # Execute Cypress Tests with Mochawesome Report
-    - name: Run Cypress Tests
-      run: |
-        npm run cypress:run --reporter mochawesome --reporter-options reportDir=cypress/reports,reportFilename=index
-      continue-on-error: true # Ensure this step doesn't fail the job
+      # Delete old mochawesome.html file if it exists
+      - name: Delete old mochawesome.html
+        run: |
+          if [ -f "cypress/results/mochawesome.html" ]; then
+            rm cypress/results/mochawesome.html
+            echo "Deleted old mochawesome.html file."
+          else
+            echo "No old mochawesome.html file found."
+          fi
 
-    # Merge Mochawesome Reports
-    - name: Merge Mochawesome Reports
-      run: |
-        npx mochawesome-merge cypress/results/mochawesome.json > cypress/results/report.json
-        npx mochawesome-report-generator cypress/results/report.json -o cypress/results/html
+      # Run Cypress tests with Mochawesome reporter
+      - name: Run Cypress tests
+        run: npx cypress run --reporter mochawesome --reporter-options reportDir=cypress/results
 
-    # Send the report to Slack using Webhook
-    - name: Send Report to Slack
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-      run: |
-        curl -X POST -H 'Content-type: application/json' --data @cypress/results/html/index.html $SLACK_WEBHOOK
+      # Upload Mochawesome report as an artifact
+      - name: Upload Mochawesome report
+        uses: actions/upload-artifact@v3
+        with:
+          name: mochawesome-report
+          path: cypress/results/
+
+      # Send Mochawesome report link to Slack
+      - name: Send report to Slack
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_COLOR: '#36a64f'
+          SLACK_TITLE: 'Cypress Test Report'
+          SLACK_MESSAGE: 'Cypress tests completed. View the report: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          SLACK_FOOTER: 'GitHub Actions'

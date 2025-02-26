@@ -1,15 +1,15 @@
 {
   "stats": {
     "suites": 1,
-    "tests": 1,
-    "passes": 0,
+    "tests": 3,
+    "passes": 2,
     "pending": 0,
     "failures": 1,
-    "start": "2025-02-26T10:44:35.124Z",
-    "end": "2025-02-26T10:44:45.489Z",
-    "duration": 10365,
-    "testsRegistered": 1,
-    "passPercent": 0,
+    "start": "2025-02-26T12:32:09.895Z",
+    "end": "2025-02-26T12:32:20.387Z",
+    "duration": 10492,
+    "testsRegistered": 3,
+    "passPercent": 66.66666666666666,
     "pendingPercent": 0,
     "other": 0,
     "hasOther": false,
@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "uuid": "d99b0ee7-191b-4342-a485-e887c48c70ad",
+      "uuid": "633f8a7a-6c11-4fa1-8d4f-a6eb31270dff",
       "title": "",
       "fullFile": "cypress/e2e/test.cy.js",
       "file": "cypress/e2e/test.cy.js",
@@ -27,7 +27,7 @@
       "tests": [],
       "suites": [
         {
-          "uuid": "10d607df-a72c-479a-9522-992a617cea9a",
+          "uuid": "71189b10-0293-4366-ba3a-3736949dbbd9",
           "title": "CI CD",
           "fullFile": "",
           "file": "",
@@ -38,33 +38,72 @@
               "title": "login",
               "fullTitle": "CI CD login",
               "timedOut": null,
-              "duration": 10321,
+              "duration": 129,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.viewport(1920, 1080);\ncy.visit('/');\ncy.get('h1').should('have.text', 'todos');",
+              "err": {},
+              "uuid": "f865c61b-19f1-4b16-bf8c-0d021b9fe075",
+              "parentUUID": "71189b10-0293-4366-ba3a-3736949dbbd9",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "login2",
+              "fullTitle": "CI CD login2",
+              "timedOut": null,
+              "duration": 10225,
               "state": "failed",
               "speed": null,
               "pass": false,
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "cy.viewport(1920, 1080);\ncy.visit('/');\ncy.get('h1').should('have.text', 'todosS');\n// cy.wait(500);\n// Cypress.on('uncaught:exception', (err, runnable) => {\n//   return false;\n// });\n// cy.get('div.justify-center.gap-2 button:nth-child(1)').should('be.visible').click().then(() => {\n//   cy.get('div.m-4 img[alt=\"logo\"]').should('be.visible');\n// });\n// cy.get('input[name=\"email\"]').should('be.visible').type('sjocic@bettercollective.com');\n// cy.get('input[name=\"password\"]').should('be.visible').type('Better2022');\n// cy.get('button[type=\"submit\"]').should('not.be.disabled').click();",
+              "code": "cy.viewport(1920, 1080);\ncy.visit('/');\ncy.get('h1').should('have.text', 'todosS');",
               "err": {
                 "message": "AssertionError: Timed out retrying after 10000ms: expected '<h1>' to have text 'todosS', but the text was 'todos'",
-                "estack": "AssertionError: Timed out retrying after 10000ms: expected '<h1>' to have text 'todosS', but the text was 'todos'\n    at Context.eval (webpack://rollup-todomvc/./cypress/e2e/test.cy.js:14:17)",
+                "estack": "AssertionError: Timed out retrying after 10000ms: expected '<h1>' to have text 'todosS', but the text was 'todos'\n    at Context.eval (webpack://rollup-todomvc/./cypress/e2e/test.cy.js:21:17)",
                 "diff": "- 'todos'\n+ 'todosS'\n"
               },
-              "uuid": "503409f4-d882-4242-97e9-fe63553487e7",
-              "parentUUID": "10d607df-a72c-479a-9522-992a617cea9a",
+              "uuid": "368373ba-c5c3-48a2-8218-8b837b47be9d",
+              "parentUUID": "71189b10-0293-4366-ba3a-3736949dbbd9",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "login3",
+              "fullTitle": "CI CD login3",
+              "timedOut": null,
+              "duration": 37,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.viewport(1920, 1080);\ncy.visit('/');\ncy.get('h1').should('have.text', 'todos');",
+              "err": {},
+              "uuid": "3030ea91-5654-4b9d-aad2-65ad3de42caf",
+              "parentUUID": "71189b10-0293-4366-ba3a-3736949dbbd9",
               "isHook": false,
               "skipped": false
             }
           ],
           "suites": [],
-          "passes": [],
+          "passes": [
+            "f865c61b-19f1-4b16-bf8c-0d021b9fe075",
+            "3030ea91-5654-4b9d-aad2-65ad3de42caf"
+          ],
           "failures": [
-            "503409f4-d882-4242-97e9-fe63553487e7"
+            "368373ba-c5c3-48a2-8218-8b837b47be9d"
           ],
           "pending": [],
           "skipped": [],
-          "duration": 10321,
+          "duration": 10391,
           "root": false,
           "rootEmpty": false,
           "_timeout": 2000
@@ -88,7 +127,7 @@
       "options": {
         "quiet": false,
         "reportFilename": "mochawesome",
-        "saveHtml": false,
+        "saveHtml": true,
         "saveJson": true,
         "consoleReporter": "spec",
         "useInlineDiffs": false,
@@ -99,8 +138,8 @@
     "marge": {
       "options": {
         "reportDir": "cypress/results",
-        "overwrite": false,
-        "html": false,
+        "overwrite": true,
+        "html": true,
         "json": true
       },
       "version": "6.2.0"
