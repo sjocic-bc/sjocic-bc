@@ -65,4 +65,4 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         with:
-          text: "✅ All Cypress tests passed successfully!"
+          message: "✅ All Cypress tests passed successfully!"
