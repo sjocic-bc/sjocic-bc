@@ -51,10 +51,18 @@ jobs:
         if: env.CYPRESS_FAILED == 'true'
         id: get_artifact_url
         run: |
+          # Set the GH_TOKEN environment variable for GitHub CLI
+          export GH_TOKEN=${{ secrets.GH_TOKEN }}
+          
+          # Retrieve the artifact ID using GitHub CLI
           ARTIFACT_ID=$(gh run view $GITHUB_RUN_ID --json artifacts -q ".artifacts[0].id")
+          
+          # Construct the artifact URL
           ARTIFACT_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_ID}"
+          
+          # Output the URL to the GitHub environment
           echo "ARTIFACT_URL=$ARTIFACT_URL" >> $GITHUB_ENV
-
+          
       - name: Send Slack Notification with Artifact Link (if failed)
         if: env.CYPRESS_FAILED == 'true'
         run: |
