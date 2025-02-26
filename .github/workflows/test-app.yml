@@ -47,36 +47,35 @@ jobs:
           name: mochawesome-report
           path: cypress/results/
 
-      - name: Retrieve Artifact URL
+      - name: Get Artifact ID and URL
         if: env.CYPRESS_FAILED == 'true'
-        id: get_artifact_url
+        id: artifact-info
         run: |
-          # Set the GH_TOKEN environment variable for GitHub CLI
-          export GH_TOKEN=${{ secrets.GH_TOKEN }}
+          # Fetch the artifact ID and URL dynamically using GitHub's API
+          ARTIFACT_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+            | jq -r '.artifacts[0].id')
           
-          # Retrieve the artifact ID using GitHub CLI
-          ARTIFACT_ID=$(gh run view $GITHUB_RUN_ID --json artifacts -q ".artifacts[0].id")
+          ARTIFACT_NAME=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+            | jq -r '.artifacts[0].name')
           
-          # Construct the artifact URL
-          ARTIFACT_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_ID}"
-          
-          # Output the URL to the GitHub environment
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/suites/${{ github.run_id }}/artifacts/${ARTIFACT_ID}"
+          echo "Artifact URL: $ARTIFACT_URL"
           echo "ARTIFACT_URL=$ARTIFACT_URL" >> $GITHUB_ENV
-          
-      - name: Send Slack Notification with Artifact Link (if failed)
+
+      - name: Send Failure Message to Slack (if failed)
         if: env.CYPRESS_FAILED == 'true'
-        run: |
-          curl -X POST "https://slack.com/api/chat.postMessage" \
-          -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
-          -H "Content-Type: application/json" \
-          -d '{
-                "channel": "#test-gh-notif",
-                "text": "🚨 Test run failed! Here is the Report: <${{ env.ARTIFACT_URL }}|Download Report>"
-              }'
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_TITLE: "Predictor E2E test"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_MESSAGE: "❌ Cypress tests failed! You can download the MochaAwesome report from the following link: ${{ env.ARTIFACT_URL }}"
+          MSG_MINIMAL: "true"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
-      - name: Send Success Message (if passed)
+      - name: Send Success Message to Slack (if passed)
         if: env.CYPRESS_FAILED != 'true'
         uses: rtCamp/action-slack-notify@v2
         env:
@@ -84,3 +83,6 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "✅ All Cypress tests passed successfully!"
           MSG_MINIMAL: "true"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
