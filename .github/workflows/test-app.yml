@@ -48,15 +48,8 @@ jobs:
         if: always()
         run: |
           if ls cypress/results/*.json 1> /dev/null 2>&1; then
-            npx mochawesome-merge cypress/results/*.json > cypress/results/report.json
+            npx mochawesome-merge cypress/results/mochawesome.json > cypress/results/report.json
           else
-            echo '{"stats":{"tests": 0, "passes": 0, "failures": 0, "skipped": 0}}' > cypress/results/report.json
-          fi
-
-      - name: Ensure report is not empty
-        if: always()
-        run: |
-          if [ ! -f cypress/results/report.json ] || [ ! -s cypress/results/report.json ]; then
             echo '{"stats":{"tests": 0, "passes": 0, "failures": 0, "skipped": 0}}' > cypress/results/report.json
           fi
 
@@ -69,11 +62,6 @@ jobs:
         run: |
           # Read the report.json
           REPORT_CONTENT=$(cat cypress/results/report.json)
-          
-          # Ensure the report is not empty
-          if [[ -z "$REPORT_CONTENT" ]]; then
-              echo '{"stats":{"tests": 0, "passes": 0, "failures": 0, "skipped": 0}}' > cypress/results/report.json
-          fi
 
           # Parse stats and tests details using jq
           TEST_RESULTS=$(jq -c '.stats' cypress/results/report.json)
@@ -92,11 +80,22 @@ jobs:
               MESSAGE="$MESSAGE\n\n*Failed Tests:*"
               MESSAGE="$MESSAGE\n\`\`\`${FAILED_TESTS}\`\`\`"  # Add failed test names
             else
-              MESSAGE="*Cypress Test Report* ✅ All tests passed!"
+              MESSAGE="*Cypress Test Report*  All tests passed!"
             fi
           fi
 
+          # Prepare the full Slack payload
+          PAYLOAD=$(cat <<EOF
+{
+  "text": "$MESSAGE",
+  "attachments": [
+    {
+      "text": "\`\`\`$TEST_RESULTS\`\`\`"
+    }
+  ]
+}
+EOF
+)
+
           # Send the message to Slack
-          curl -X POST -H 'Content-type: application/json' --data \
-          "{\"text\":\"${MESSAGE}\", \"attachments\": [{\"text\": \"\`\`\`${TEST_RESULTS}\`\`\`\"}]}" \
-          $SLACK_WEBHOOK
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK

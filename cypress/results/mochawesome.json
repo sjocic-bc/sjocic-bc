@@ -5,9 +5,9 @@
     "passes": 0,
     "pending": 0,
     "failures": 1,
-    "start": "2025-02-26T10:15:17.924Z",
-    "end": "2025-02-26T10:15:28.254Z",
-    "duration": 10330,
+    "start": "2025-02-26T10:44:35.124Z",
+    "end": "2025-02-26T10:44:45.489Z",
+    "duration": 10365,
     "testsRegistered": 1,
     "passPercent": 0,
     "pendingPercent": 0,
@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "uuid": "69239ef2-c792-46c4-a3b9-adcceb4269f1",
+      "uuid": "d99b0ee7-191b-4342-a485-e887c48c70ad",
       "title": "",
       "fullFile": "cypress/e2e/test.cy.js",
       "file": "cypress/e2e/test.cy.js",
@@ -27,7 +27,7 @@
       "tests": [],
       "suites": [
         {
-          "uuid": "67d1a22d-3c11-41ca-a548-25f29ef50747",
+          "uuid": "10d607df-a72c-479a-9522-992a617cea9a",
           "title": "CI CD",
           "fullFile": "",
           "file": "",
@@ -38,7 +38,7 @@
               "title": "login",
               "fullTitle": "CI CD login",
               "timedOut": null,
-              "duration": 10286,
+              "duration": 10321,
               "state": "failed",
               "speed": null,
               "pass": false,
@@ -51,8 +51,8 @@
                 "estack": "AssertionError: Timed out retrying after 10000ms: expected '<h1>' to have text 'todosS', but the text was 'todos'\n    at Context.eval (webpack://rollup-todomvc/./cypress/e2e/test.cy.js:14:17)",
                 "diff": "- 'todos'\n+ 'todosS'\n"
               },
-              "uuid": "f2c2c342-90ef-42f3-a005-1acde5f089ea",
-              "parentUUID": "67d1a22d-3c11-41ca-a548-25f29ef50747",
+              "uuid": "503409f4-d882-4242-97e9-fe63553487e7",
+              "parentUUID": "10d607df-a72c-479a-9522-992a617cea9a",
               "isHook": false,
               "skipped": false
             }
@@ -60,11 +60,11 @@
           "suites": [],
           "passes": [],
           "failures": [
-            "f2c2c342-90ef-42f3-a005-1acde5f089ea"
+            "503409f4-d882-4242-97e9-fe63553487e7"
           ],
           "pending": [],
           "skipped": [],
-          "duration": 10286,
+          "duration": 10321,
           "root": false,
           "rootEmpty": false,
           "_timeout": 2000
@@ -99,7 +99,7 @@
     "marge": {
       "options": {
         "reportDir": "cypress/results",
-        "overwrite": true,
+        "overwrite": false,
         "html": false,
         "json": true
       },
