@@ -45,15 +45,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mochawesome-report
-          path: |
-            cypress/results/mochawesome.html
-            cypress/results/assets/
+          path: cypress/results/
 
-      - name: Send Slack Notification with HTML Report (if failed)
+       name: Send Slack Notification with HTML Report (if failed)
   if: env.CYPRESS_FAILED == 'true'
   run: |
-    curl -F file=@cypress/results/mochawesome.html \
-         -F "initial_comment=🚨 Test run failed! Here's the report." \
+    # Zip the report and assets together
+    zip -r mochawesome-report.zip cypress/results/mochawesome.html cypress/results/assets/
+
+    # Upload the zip file to Slack
+    curl -F file=@mochawesome-report.zip \
+         -F "initial_comment=🚨 Test run failed! Here's the full report with assets." \
          -F "channels=#test-gh-notif" \
          -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
          https://slack.com/api/files.upload
