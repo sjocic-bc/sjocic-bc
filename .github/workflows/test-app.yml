@@ -55,10 +55,10 @@ jobs:
 
           # Upload the zip file to Slack
           curl -F file=@mochawesome-report.zip \
-               -F "initial_comment=🚨 Test run failed! Here's the full report with assets." \
-               -F "channels=#test-gh-notif" \
-               -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
-               https://slack.com/api/files.upload
+          -F "initial_comment=🚨 Test run failed! Here's the full report with assets." \
+          -F "channel_id=#test-gh-notif" \
+          -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+          https://slack.com/api/files.uploadV2
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
