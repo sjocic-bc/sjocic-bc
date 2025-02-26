@@ -50,13 +50,14 @@ jobs:
       - name: Send Slack Notification with HTML Report (if failed)
         if: env.CYPRESS_FAILED == 'true'
         run: |
-          curl -F file=@cypress/results/mochawesome.html \
-               -F "initial_comment=🚨 Test run failed! Here's the report." \
-               -F channels=#test-gh-notif \
-               -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
-               https://slack.com/api/files.upload
+          curl -X POST -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+           -F "file=@cypress/results/mochawesome.html" \
+           -F "initial_comment=🚨 Test run failed! Here's the report." \
+           -F "channel_id=#test-gh-notif" \
+            https://slack.com/api/files.uploadV2
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+            SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
 
       - name: Send Success Message (if passed)
         if: env.CYPRESS_FAILED != 'true'
