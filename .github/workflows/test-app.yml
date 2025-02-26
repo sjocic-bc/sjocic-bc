@@ -31,9 +31,11 @@ jobs:
       - name: Build the app
         run: npm run build
 
+      # Start the server
       - name: Start the server
         run: npm start &
-      
+
+      # Wait for the server to be ready
       - name: Wait for server to be ready
         run: |
           for i in {1..30}; do
@@ -68,12 +70,13 @@ jobs:
           name: mochawesome-report
           path: cypress/results/
 
-      # Send Mochawesome report link to Slack
+      # Send Mochawesome report link to Slack (always runs)
       - name: Send report to Slack
+        if: always()  # Ensures this step runs even if tests fail
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_COLOR: '#36a64f'
-          SLACK_TITLE: 'Cypress Test Report'
-          SLACK_MESSAGE: 'Cypress tests completed. View the report: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          SLACK_COLOR: '${{ job.status == ''success'' ? ''#36a64f'' : ''#ff0000'' }}'  # Green for success, red for failure
+          SLACK_TITLE: 'Cypress Test Report - ${{ job.status }}'
+          SLACK_MESSAGE: 'Cypress tests completed with status: ${{ job.status }}. View the report: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
           SLACK_FOOTER: 'GitHub Actions'
