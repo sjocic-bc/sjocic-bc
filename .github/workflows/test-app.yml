@@ -10,10 +10,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Setup Node.js and Cache Dependencies
         uses: actions/setup-node@v3
         with:
           node-version: 20
+        # Caching dependencies
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: npm install
@@ -27,7 +35,7 @@ jobs:
       - name: Wait for server to be ready
         run: |
           for i in {1..30}; do
-            if curl -s http://localhost:8080 > /dev/null; then
+            if curl -s --max-time 5 http://localhost:8080 > /dev/null; then
               echo "Server is up!"
               exit 0
             fi
@@ -47,7 +55,7 @@ jobs:
           name: mochawesome-report
           path: cypress/results/
 
-      - name: Get Artifact ID and URL
+      - name: Get Artifact URL (if failed)
         if: env.CYPRESS_FAILED == 'true'
         id: artifact-info
         run: |
@@ -55,25 +63,21 @@ jobs:
           ARTIFACT_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
             | jq -r '.artifacts[0].id')
-          
-          ARTIFACT_NAME=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
-            | jq -r '.artifacts[0].name')
-          
-          ARTIFACT_URL="https://github.com/${{ github.repository }}/suites/${{ github.run_id }}/artifacts/${ARTIFACT_ID}"
+
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/artifacts/${ARTIFACT_ID}/download"
           echo "Artifact URL: $ARTIFACT_URL"
           echo "ARTIFACT_URL=$ARTIFACT_URL" >> $GITHUB_ENV
 
-      - name: Send Failure Message to Slack (if failed)
+      - name: Send Message to Slack
         if: env.CYPRESS_FAILED == 'true'
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_TITLE: "Predictor E2E test"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_MESSAGE: "❌ Cypress tests failed! You can download the MochaAwesome report from the following link: ${{ env.ARTIFACT_URL }}"
+          SLACK_MESSAGE: "❌ Cypress tests failed!\nYou can download the report from the following link:\n${{ env.ARTIFACT_URL }}"
           MSG_MINIMAL: "true"
 
-      - name: Send Success Message to Slack (if passed)
+      - name: Send Success Message to Slack
         if: env.CYPRESS_FAILED != 'true'
         uses: rtCamp/action-slack-notify@v2
         env:
@@ -81,5 +85,3 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "✅ All Cypress tests passed successfully!"
           MSG_MINIMAL: "true"
-
-
