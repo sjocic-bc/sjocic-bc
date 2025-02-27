@@ -40,18 +40,17 @@ jobs:
       - name: Run Cypress Tests
         run: npx cypress run --reporter mochawesome || echo "CYPRESS_FAILED=true" >> $GITHUB_ENV
 
-      - name: Upload MochaAwesome Report (if failed)
+      - name: Upload Report
         if: env.CYPRESS_FAILED == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: mochawesome-report
           path: cypress/results/
 
-      - name: Get Artifact URL (if failed)
+      - name: Get Report URL
         if: env.CYPRESS_FAILED == 'true'
         id: artifact-info
         run: |
-          # Fetch the artifact ID and URL dynamically using GitHub's API
           ARTIFACT_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
             | jq -r '.artifacts[0].id')
@@ -68,7 +67,8 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "\n❌ Cypress tests failed!\n \nYou can download the report from the following link:\n${{ env.ARTIFACT_URL }}"
           MSG_MINIMAL: "true"
-          SLACK_COLOR: "danger" 
+          SLACK_COLOR: "danger"
+          SLACK_FOOTER: "Click the link to start the download automatically" 
 
       - name: Send Success Message to Slack
         if: env.CYPRESS_FAILED != 'true'
